@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Credit Risk & Default Prediction Report</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+/* Full viewport - NO SCROLL */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    font-family: "Inter", sans-serif;
+    background: #e5e7eb;
+}
+
+.container { 
+    height: 100vh;
+    width: 100vw;
+    padding: 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+h1 {
+    font-size: clamp(18px, 2.5vw, 23px);
+    font-weight: 700;
+    margin: 0;
+    color: #2c2f36;
+    letter-spacing: 0.2px;
+}
+
+/* RESPONSIVE GRID - Auto-adjusts columns */
+.grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 14px;
+    overflow: hidden;
+}
+
+/* CARD - Responsive height */
+.card {
+    background: #fff;
+    border-radius: 14px;
+    border-left: 4px solid #d93945;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 10px 14px 0 14px;
+}
+
+.title {
+    font-size: clamp(12px, 1.5vw, 17px);
+    padding-left: 16px;
+    padding-top: 10px;
+    font-weight: 700;
+    color: #3a3f46;
+    line-height: 1.08;
+    margin: 0;
+}
+
+.title-line {
+    width: 92%;
+    margin: 3px auto 6px auto;
+    height: 2px;
+    background: #e2e5ea;
+    border-radius: 2px;
+}
+
+.chart-box {
+    flex: 1;
+    padding: 6px 12px 8px 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chart-box canvas {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+/* METRICS */
+.metrics-boxes {
+    display: flex;
+    gap: 10px;
+    padding: 5px;
+    height: 100%;
+    align-items: stretch;
+}
+
+.metric {
+    flex: 1;
+    background: linear-gradient(180deg, #fafafa, #f2f2f2);
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #e3e3e3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.metric-title { 
+    font-size: clamp(9px, 1vw, 10.5px); 
+    font-weight: 700; 
+    color: #555; 
+    letter-spacing: .3px;
+    margin-bottom: 3px;
+}
+.metric-value { 
+    font-size: clamp(12px, 1.5vw, 14px); 
+    font-weight: 700; 
+    color: #222; 
+}
+.metric-pred { 
+    font-size: clamp(12px, 1.5vw, 14px); 
+    font-weight: 700; 
+    color: #2eaf62; 
+}
+
+/* GAUGE */
+.gauge-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 12px;
+}
+
+.gauge-container canvas { 
+    max-height: 200px;
+    max-width: 200px;
+}
+
+.gauge-text {
+    position: absolute;
+    text-align: center;
+    font-size: clamp(9px, 1vw, 10px);
+    font-weight: 600;
+    color: #444;
+    width: 100%;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h1>Credit Risk & Default Prediction Report</h1>
+    
+    <div class="grid">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="title">Predicted Probability of Default (PD)<br>Trend – Portfolio Average</h2>
+                <div class="title-line"></div>
+            </div>
+            <div class="chart-box"><canvas id="pdTrend"></canvas></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="title">Key Risk Metrics - Current vs Predicted</h2>
+                <div class="title-line"></div>
+            </div>
+            <div class="metrics-boxes">
+                <div class="metric">
+                    <div class="metric-title">AVG.<br>PORTFOLIO<br>PD</div>
+                    <div class="metric-value">2.5%</div>
+                    <div class="metric-pred">2.8% Pred</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-title">EXPECTED<br>LOSS (EL)</div>
+                    <div class="metric-value">$1.2M</div>
+                    <div class="metric-pred">$1.4M<br>Pred</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-title">HIGH RISK<br>CUSTOMERS</div>
+                    <div class="metric-value">15%</div>
+                    <div class="metric-pred">17% Pred</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="title">Probability of Default Distribution - <br>Customer Segments</h2>
+                <div class="title-line"></div>
+            </div>
+            <div class="chart-box"><canvas id="pdSegments"></canvas></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="title">PD by Customer Segment – Comparison</h2>
+                <div class="title-line"></div>
+            </div>
+            <div class="chart-box"><canvas id="pdComparison"></canvas></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="title">Risk Exposure Matrix – Customer <br>Segment vs Risk Category</h2>
+                <div class="title-line"></div>
+            </div>
+            <div class="chart-box"><canvas id="exposureMatrix"></canvas></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="title">Overall Portfolio Risk Score</h2>
+                <div class="title-line"></div>
+            </div>
+            <div class="gauge-container">
+                <canvas id="gaugeChart"></canvas>
+                <div class="gauge-text">Risk Score: 65/100</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+Chart.defaults.devicePixelRatio = 2;
+
+const cBlue = "rgba(91,192,222,0.8)",
+      cPink = "rgba(244,108,133,0.8)",
+      cYellow = "rgba(249,217,108,0.8)",
+      cTeal = "rgba(77,192,181,0.8)";
+
+const axisOptions = {
+    x: {ticks: {font: {size: 10}}, grid: {display: true, color: "rgba(0,0,0,0.05)"}},
+    y: {ticks: {font: {size: 10}, callback: v => v.toFixed(1)}, 
+        title: {display: true, text: "Probability of Default (%)", font: {size: 12}}, 
+        grid: {display: true, color: "rgba(0,0,0,0.05)"}}
+};
+
+new Chart(document.getElementById('pdTrend'), {
+    type: "line",
+    data: {
+        labels: [2021, 2022, 2023, 2024, "2025 (Pred)"],
+        datasets: [{
+            data: [2.2, 2.3, 2.4, 2.5, 2.8],
+            borderColor: "#d9534f",
+            backgroundColor: "rgba(217,83,79,0.20)",
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {legend: {display: false}},
+        scales: {
+            x: {ticks: {font: {size: 10}}, title: {display: true, text: "Years", font: {size: 12}}},
+            y: {min: 2.2, max: 2.8, ticks: {stepSize: 0.1, font: {size: 10}}, 
+                title: {display: true, text: "Probability of Default (%)", font: {size: 12}}}
+        }
+    }
+});
+
+new Chart(document.getElementById('pdSegments'), {
+    type: "bar",
+    data: {
+        labels: ["Segment A", "Segment B", "Segment C", "Segment D"],
+        datasets: [{data: [1.5, 3, 2, 4.5], backgroundColor: [cBlue, cPink, cYellow, cTeal]}]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {legend: {display: false}},
+        scales: axisOptions
+    }
+});
+
+new Chart(document.getElementById('pdComparison'), {
+    type: "bar",
+    data: {
+        labels: ["Segment A", "Segment B", "Segment C", "Segment D"],
+        datasets: [{data: [1.5, 3, 2, 4.5], backgroundColor: [cBlue, cPink, cYellow, cTeal]}]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {legend: {display: false}},
+        scales: axisOptions
+    }
+});
+
+new Chart(document.getElementById('exposureMatrix'), {
+    type: "bar",
+    data: {
+        labels: ["Low Risk", "Medium Risk", "High Risk"],
+        datasets: [
+            {label: "Segment A", data: [100, 50, 20], backgroundColor: cBlue, stack: "s1"},
+            {label: "Segment B", data: [30, 80, 150], backgroundColor: cPink, stack: "s1"},
+            {label: "Segment C", data: [150, 60, 10], backgroundColor: cYellow, stack: "s1"},
+            {label: "Segment D", data: [70, 120, 40], backgroundColor: cTeal, stack: "s1"}
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {legend: {position: "top"}},
+        scales: {
+            x: {stacked: true, ticks: {font: {size: 10}}},
+            y: {stacked: true, min: 0, max: 350, ticks: {stepSize: 50, font: {size: 10}}, 
+                title: {display: true, text: "Risk Exposure (Millions USD)", font: {size: 12}}}
+        }
+    }
+});
+
+new Chart(document.getElementById('gaugeChart'), {
+    type: "doughnut",
+    data: {
+        datasets: [{
+            data: [65, 35],
+            backgroundColor: ["#F46C85", "#e4e4e4"],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        rotation: -90,
+        circumference: 180,
+        cutout: "72%",
+        plugins: {legend: {display: false}}
+    }
+});
+</script>
+</body>
+</html>
